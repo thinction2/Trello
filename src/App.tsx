@@ -2,29 +2,42 @@ import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { useRecoilState } from "recoil";
 import styled from "styled-components";
 import { toDoState } from "./atoms";
+import Bin from "./Components/Bin";
 import Board from "./Components/Board";
+import CreateBoard from "./Components/CreateBoard";
+
+const Layout = styled.div`
+  display: flex;
+  flex-direction: column;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 150px;
+  align-items: center;
+  min-height: 100vh;
+  height: 100%;
+`;
 
 const Wrapper = styled.div`
   display: flex;
-  max-width: 680px;
-  /* width: 100%; */
-  margin: 0 auto;
   justify-content: center;
   align-items: center;
-  height: 100vh;
 `;
 
 const Boards = styled.div`
   display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  place-content: center center;
   width: 100%;
   gap: 10px;
-  grid-template-columns: repeat(3, 1fr);
 `;
 
 function App() {
   const [toDos, setToDos] = useRecoilState(toDoState);
   const onDragEdn = (info: DropResult) => {
-    const { draggableId, destination, source } = info;
+    console.log(info);
+    const { destination, source } = info;
+
     if (!destination) return;
     if (destination?.droppableId === source.droppableId) {
       //same board movement
@@ -40,30 +53,45 @@ function App() {
       });
     }
     if (destination?.droppableId !== source.droppableId) {
+      if (destination?.droppableId === "bin") {
+        setToDos((allBoards) => {
+          const sourceBoard = [...allBoards[source.droppableId]];
+          sourceBoard.splice(source.index, 1);
+          return {
+            ...allBoards,
+            [source.droppableId]: sourceBoard,
+          };
+        });
+      } else {
+        setToDos((allBoards) => {
+          const sourceBoard = [...allBoards[source.droppableId]];
+          const taskObj = sourceBoard[source.index];
+          const destinationBoard = [...allBoards[destination.droppableId]];
+          sourceBoard.splice(source.index, 1);
+          destinationBoard.splice(destination?.index, 0, taskObj);
+          return {
+            ...allBoards,
+            [source.droppableId]: sourceBoard,
+            [destination.droppableId]: destinationBoard,
+          };
+        });
+      }
       //cross board movement
-      setToDos((allBoards) => {
-        const sourceBoard = [...allBoards[source.droppableId]];
-        const taskObj = sourceBoard[source.index];
-        const destinationBoard = [...allBoards[destination.droppableId]];
-        sourceBoard.splice(source.index, 1);
-        destinationBoard.splice(destination?.index, 0, taskObj);
-        return {
-          ...allBoards,
-          [source.droppableId]: sourceBoard,
-          [destination.droppableId]: destinationBoard,
-        };
-      });
     }
   };
   return (
     <DragDropContext onDragEnd={onDragEdn}>
-      <Wrapper>
-        <Boards>
-          {Object.keys(toDos).map((boardId) => (
-            <Board boardId={boardId} toDos={toDos[boardId]} key={boardId} />
-          ))}
-        </Boards>
-      </Wrapper>
+      <Bin />
+      <Layout>
+        <CreateBoard />
+        <Wrapper>
+          <Boards>
+            {Object?.keys(toDos).map((boardId) => (
+              <Board boardId={boardId} toDos={toDos[boardId]} key={boardId} />
+            ))}
+          </Boards>
+        </Wrapper>
+      </Layout>
     </DragDropContext>
   );
 }

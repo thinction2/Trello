@@ -67,6 +67,13 @@ cursor: pointer;
   background-color: transparent;
 color: inherit;
 }
+input {
+  outline: none;
+  border: none;
+  :focus {
+    outline: none;
+  }
+}
 `;
 
 const root = createRoot(document.getElementById("root") as HTMLElement);

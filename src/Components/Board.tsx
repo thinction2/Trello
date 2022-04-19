@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { ITodo, toDoState } from "../atoms";
 import { useSetRecoilState } from "recoil";
 
-const Wrapper = styled.div`
+const Container = styled.div`
   padding-top: 10px;
   background-color: ${(p) => p.theme.boardColor};
   border-radius: 5px;
@@ -14,11 +14,25 @@ const Wrapper = styled.div`
   flex-direction: column;
 `;
 
-const Title = styled.h2`
+const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  font-weight: 600;
+  position: relative;
+  height: fit-content;
   margin-bottom: 10px;
+`;
+
+const Title = styled.h2`
+  font-weight: 600;
   font-size: 18px;
+`;
+
+const DeleteBton = styled.button`
+  position: absolute;
+  font-size: 18px;
+  right: 8px;
 `;
 
 interface IAreaProps {
@@ -47,6 +61,8 @@ const Form = styled.form`
   width: 100%;
   input {
     width: 100%;
+    padding: 4px 8px;
+    font-size: 16px;
   }
 `;
 
@@ -71,14 +87,24 @@ const Board = ({ toDos, boardId }: IBoardProps) => {
     });
     setValue("toDo", "");
   };
+  const deleteBoard = () => {
+    setToDos((allBoards): any => {
+      const newBoards = { ...allBoards };
+      delete newBoards[boardId];
+      return newBoards;
+    });
+  };
   return (
-    <Wrapper>
-      <Title>{boardId}</Title>
+    <Container>
+      <Wrapper>
+        <Title>{boardId}</Title>
+        <DeleteBton onClick={deleteBoard}>⛔</DeleteBton>
+      </Wrapper>
       <Form onSubmit={handleSubmit(onValid)}>
         <input
           {...register("toDo", { required: true })}
           type="text"
-          placeholder={`Add task on ${boardId}`}
+          placeholder={`Add on ${boardId}`}
         />
       </Form>
       <Droppable droppableId={boardId}>
@@ -89,14 +115,14 @@ const Board = ({ toDos, boardId }: IBoardProps) => {
             isDraggingFromThis={Boolean(info.draggingFromThisWith)}
             {...magic.droppableProps}
           >
-            {toDos.map((item, index) => (
+            {toDos?.map((item, index) => (
               <DraggableCard key={item.id} {...item} index={index} />
             ))}
             {magic.placeholder}
           </Area>
         )}
       </Droppable>
-    </Wrapper>
+    </Container>
   );
 };
 
